@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<body id = "bod">
+
+<canvas id="myCanvas">Your browser does not support the HTML5 canvas tag.</canvas>
+
+<script>
+    var c = document.getElementById("myCanvas");
+    var ctx = c.getContext("2d");
+    var W = window.innerWidth;
+    var H = window.innerHeight;
+    c.width = W;
+    c.height = H;
+    var gravity = 0.5;
+    var bounce_factor = 0.8;
+    var i = 0;
+    var i2 = 0;
+    var count = 0;
+    var balls = [];
+    var coords1 = [];
+    var coords2 = [];
+    var tracker = true;
+    var tracker2 = true;
+    var c1 = 0;
+    var c2 = 1;
+    var lines = [];
+    var limit = 50;
+    
+  var Line = function(){
+      this.x1;
+      this.x2;
+      this.y1;
+      this.y2;
+      this.m;
+      this.c;
+  };
+    
+    Line.prototype.draw = function(){
+        ctx.beginPath();
+        ctx.moveTo(this.x1,this.y1);
+        ctx.lineTo(this.x2,this.y2);
+        ctx.stroke();
+    };
+    
+  var Ball = function(){
+  	this.radius = 5;
+    this.x = 50;
+    this.y = 50;
+    this.vys = 1;
+    this.vxs = 0;
+  };
+  
+  Ball.prototype.draw = function(){
+  	ctx.beginPath();
+    ctx.arc(this.x,this.y,this.radius,0,Math.PI*2);
+    ctx.fill();
+  };
+  
+    function create(e){
+        var x = e.clientX;
+        var y = e.clientY;
+        if(tracker===true){
+            lines[i2] = new Line();
+            lines[i2].x1 = x;
+            lines[i2].y1 = y;
+            tracker = false;
+        }
+        else if(tracker===false){
+            if(x<lines[i2].x1){
+                lines[i2].x2 = lines[i2].x1;
+                lines[i2].y2 = lines[i2].y1;
+                lines[i2].x1 = x;
+                lines[i2].y1 = y;
+            }
+            else{
+                lines[i2].x2 = x;
+                lines[i2].y2 = y;
+            }
+            lines[i2].m = (lines[i2].y2-lines[i2].y1)/(lines[i2].x2-lines[i2].x1);
+            lines[i2].c = lines[i2].y1-lines[i2].m*lines[i2].x1;
+            tracker = true;
+            i2++;
+        }
+    };
+    
+  function move(){
+      ctx.clearRect(0, 0, W, H);
+      for(let i=0;i<lines.length;i++){
+          lines[i].draw();
+      }
+      if(count%100===0){
+    balls[i] = new Ball;
+          i++;
+      }
+    for(let i=0;i<balls.length;i++){
+        coords1[0] = balls[i].x;
+        coords1[1] = balls[i].y;
+        balls[i].x += balls[i].vxs;
+        balls[i].y += balls[i].vys;
+        balls[i].vys+=gravity;
+        balls[i].draw();
+        coords2[0] = balls[i].x;
+        coords2[1] = balls[i].y;
+        
+        if((balls[i].y+balls[i].radius+10)>=H){
+            balls[i].vys*= -bounce_factor;
+        }
+        for(let u = 0; u<lines.length; u++){
+            
+            
+            function line_intersects(p0_x, p0_y, p1_x, p1_y, p2_x, p2_y, p3_x, p3_y) {
+
+                var s1_x, s1_y, s2_x, s2_y;
+                s1_x = p1_x - p0_x;
+                s1_y = p1_y - p0_y;
+                s2_x = p3_x - p2_x;
+                s2_y = p3_y - p2_y;
+
+                var s, t;
+                s = (-s1_y * (p0_x - p2_x) + s1_x * (p0_y - p2_y)) / (-s2_x * s1_y + s1_x * s2_y);
+                t = ( s2_x * (p0_y - p2_y) - s2_y * (p0_x - p2_x)) / (-s2_x * s1_y + s1_x * s2_y);
+
+                if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
+                {
+                    // Collision detected
+                    return 1;
+                }
+
+                return 0; // No collision
+            }
+            
+            
+            
+            if(line_intersects(coords1[0],coords1[1],coords2[0],coords2[1],lines[u].x1,lines[u].y1,lines[u].x2,lines[u].y2)===1){
+                balls[i].y = coords1[1] ;
+                balls[i].x = coords1[0] ;
+                balls[i].vxs = balls[i].vxs +  balls[i].vys * lines[u].m;
+                balls[i].vys=(balls[i].vys * (-bounce_factor))*(1-lines[u].m);
+                if(balls[i].vys>limit){
+                    balls[i].vys=limit;
+                }
+                else if(balls[i].vys<-limit){
+                    balls[i].vys=-limit;
+                }
+                if(balls[i].vxs>limit){
+                    balls[i].vxs = limit;
+                }
+                else if(balls[i].vxs<-limit){
+                    balls[i].vxs=limit;
+                }
+        }
+    }
+    }
+      count++;
+  };
+    setInterval(move,15);
+    document.getElementById('bod').addEventListener('mousedown',create);
+  
+</script>
+
+<style>
+
+  body {
+  	margin : 0;
+  }
+
+  canvas { 
+  	display : block;
+  }
+
+</style>
+</body>
+</html>
